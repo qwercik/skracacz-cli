@@ -2,6 +2,7 @@
 
 import sys
 import re
+import requests
 
 FRONTEND_URL = 'https://s.komputeryk.pl'
 API_URL = 'https://s.komputeryk.pl/api'
@@ -10,7 +11,7 @@ EXIT_SUCCESS = 0
 EXIT_INCORRECT_USAGE = 1
 EXIT_INVALID_URL = 2
 EXIT_INVALID_TOKEN = 3
-
+EXIT_REQUEST_ERROR = 4
 
 def printHelp(file=sys.stdout):
     print('Use:', sys.argv[0], '<url>', '[token]', file=file)
@@ -48,8 +49,17 @@ def main():
 
         data = { **data, 'token': token }
 
-    print(data)
+    try:
+        response = requests.post(API_URL + '/aliases', json=data)
+        response_data = response.json()
 
+        if response.status_code == 400:
+            print(response_data['message'])
+            sys.exit(EXIT_REQUEST_ERROR)
+        
+        print(FRONTEND_URL + '/' + response_data['token'])
+    except:
+        print('Error with communicating with server')
 
 if __name__ == '__main__':
     main()
